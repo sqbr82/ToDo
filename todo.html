@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的待办清单</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url('https://img.freepik.com/free-vector/hand-painted-watercolor-pastel-sky-background_23-2148902771.jpg') center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            filter: blur(8px);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #3498db;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .title-icon {
+            margin-right: 0.5rem;
+        }
+
+        .priority-select {
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            background-color: white;
+        }
+
+        .priority-select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-container input[type="text"] {
+            flex: 1;
+        }
+
+        .priority-high {
+            border-left: 4px solid #e74c3c;
+        }
+
+        .priority-medium {
+            border-left: 4px solid #f39c12;
+        }
+
+        .priority-low {
+            border-left: 4px solid #27ae60;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+            font-size: 1.1rem;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .task-actions button {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            margin-left: 0.25rem;
+        }
+
+        .edit-btn {
+            background-color: #3498db !important;
+        }
+
+        .edit-btn:hover {
+            background-color: #2980b9 !important;
+        }
+
+        .delete-btn {
+            background-color: #e74c3c !important;
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b !important;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .action-buttons button {
+            flex: 1;
+        }
+
+        #clearAll {
+            background-color: #e74c3c;
+        }
+
+        #clearAll:hover {
+            background-color: #c0392b;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s ease;
+        }
+
+        .task-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .task-item input[type="checkbox"] {
+            margin-right: 0.75rem;
+            transform: scale(1.2);
+        }
+
+        .task-item .task-content {
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        .task-item.completed .task-content {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        .task-item button {
+            background-color: #e74c3c;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .task-item button:hover {
+            background-color: #c0392b;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            .input-container {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="title-icon">📝</span>我的待办清单</h1>
+        
+        <div class="input-container">
+            <input type="text" id="taskInput" placeholder="今天要做什么？">
+            <select id="prioritySelect" class="priority-select">
+                <option value="low">低优先级</option>
+                <option value="medium" selected>中优先级</option>
+                <option value="high">高优先级</option>
+            </select>
+            <button id="addBtn">➕ 添加任务</button>
+        </div>
+
+        <div class="stats">
+            <span id="pendingCount">未完成：0</span>
+            <span id="completedCount">已完成：0</span>
+        </div>
+
+        <ul class="task-list" id="taskList"></ul>
+        
+        <div class="action-buttons">
+            <button id="clearCompleted" style="background-color: #95a5a6;">清空已完成</button>
+            <button id="clearAll">全部清空</button>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [];
+
+        function loadTasks() {
+            try {
+                const stored = localStorage.getItem('tasks');
+                tasks = stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                tasks = [];
+            }
+        }
+
+        function saveTasks() {
+            try {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            } catch (e) {
+                console.error('保存失败:', e);
+            }
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            
+            if (tasks.length === 0) {
+                taskList.innerHTML = '<div class="empty-message">🎉 暂无任务，开始添加吧！</div>';
+                updateStats();
+                return;
+            }
+            
+            taskList.innerHTML = '';
+
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = 'task-item' + (task.completed ? ' completed' : '');
+                
+                if (task.priority === 'high') {
+                    li.classList.add('priority-high');
+                } else if (task.priority === 'medium') {
+                    li.classList.add('priority-medium');
+                } else if (task.priority === 'low') {
+                    li.classList.add('priority-low');
+                }
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = task.completed;
+                checkbox.onchange = function() { toggleTask(index); };
+                
+                const span = document.createElement('span');
+                span.className = 'task-content';
+                span.textContent = task.text;
+                
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'task-actions';
+                
+                const editBtn = document.createElement('button');
+                editBtn.textContent = '编辑';
+                editBtn.className = 'edit-btn';
+                editBtn.onclick = function() { editTask(index); };
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '删除';
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.onclick = function() { deleteTask(index); };
+                
+                actionsDiv.appendChild(editBtn);
+                actionsDiv.appendChild(deleteBtn);
+                
+                li.appendChild(checkbox);
+                li.appendChild(span);
+                li.appendChild(actionsDiv);
+                taskList.appendChild(li);
+            });
+
+            updateStats();
+        }
+
+        function updateStats() {
+            const pending = tasks.filter(t => !t.completed).length;
+            const completed = tasks.filter(t => t.completed).length;
+            document.getElementById('pendingCount').textContent = '未完成: ' + pending;
+            document.getElementById('completedCount').textContent = '已完成: ' + completed;
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const prioritySelect = document.getElementById('prioritySelect');
+            const text = input.value.trim();
+            
+            if (text) {
+                tasks.push({ 
+                    text: text, 
+                    completed: false,
+                    priority: prioritySelect.value
+                });
+                saveTasks();
+                input.value = '';
+                renderTasks();
+            }
+        }
+
+        function toggleTask(index) {
+            tasks[index].completed = !tasks[index].completed;
+            saveTasks();
+            renderTasks();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            saveTasks();
+            renderTasks();
+        }
+
+        function editTask(index) {
+            const newText = prompt('编辑任务：', tasks[index].text);
+            if (newText !== null && newText.trim() !== '') {
+                tasks[index].text = newText.trim();
+                saveTasks();
+                renderTasks();
+            }
+        }
+
+        function clearCompleted() {
+            if (tasks.filter(t => t.completed).length === 0) {
+                alert('没有已完成的任务！');
+                return;
+            }
+            tasks = tasks.filter(t => !t.completed);
+            saveTasks();
+            renderTasks();
+        }
+
+        function clearAll() {
+            if (tasks.length === 0) {
+                alert('任务列表已经是空的！');
+                return;
+            }
+            if (confirm('确定要清空所有任务吗？此操作不可恢复！')) {
+                tasks = [];
+                saveTasks();
+                renderTasks();
+            }
+        }
+
+        document.getElementById('addBtn').onclick = addTask;
+        
+        document.getElementById('taskInput').onkeypress = function(e) {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        };
+        
+        document.getElementById('clearCompleted').onclick = clearCompleted;
+        document.getElementById('clearAll').onclick = clearAll;
+
+        loadTasks();
+        renderTasks();
+    </script>
+</body>
+</html>
